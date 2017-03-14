@@ -1,0 +1,1151 @@
+    % SCORAN is free software: you can redistribute it and/or modify
+    % it under the terms of the GNU General Public License as published by
+    % the Free Software Foundation, either version 3 of the License, or
+    % (at your option) any later version.
+
+    % SCORAN is distributed in the hope that it will be useful,
+    % but WITHOUT ANY WARRANTY; without even the implied warranty of
+    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    % GNU General Public License for more details.
+
+    % You should have received a copy of the GNU General Public License
+    % along with SCORAN.  If not, see <http://www.gnu.org/licenses/>.
+
+
+function varargout = scoran(varargin)
+% SCORAN MATLAB code for scoran.fig
+%      SCORAN, by itself, creates a new SCORAN or raises the existing
+%      singleton*.
+%
+%      H = SCORAN returns the handle to a new SCORAN or the handle to
+%      the existing singleton*.
+%
+%      SCORAN('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in SCORAN.M with the given input arguments.
+%
+%      SCORAN('Property','Value',...) creates a new SCORAN or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before scoran_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to scoran_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help scoran
+
+% Last Modified by GUIDE v2.5 20-May-2016 18:43:31
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @scoran_OpeningFcn, ...
+                   'gui_OutputFcn',  @scoran_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before scoran is made visible.
+function scoran_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to scoran (see VARARGIN)
+
+% Choose default command line output for scoran
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+
+
+errorcheck=0;
+
+assignin('base','errorcheck',errorcheck);
+
+
+
+% UIWAIT makes scoran wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = scoran_OutputFcn(hObject, eventdata, handles)
+movegui('center');
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+set(handles.figure1,'Name',['Simple CORrespondence ANalysis  | ',char(169),' 2016 Emmanouil N. Kalligeris. All rights reserved.']); %copyrigths
+
+
+% --- Executes on button press in pushbutton6.
+function pushbutton6_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton6 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[file,path] = uigetfile({'*.xlsx'},'File Selector');
+fullpathname= strcat(path,file);
+
+existance= exist(fullpathname, 'file'); 
+
+set(handles.text4, 'String' ,fullpathname);% Showing FullPathName
+assignin('base','fullpathname',fullpathname);
+
+if existance==2
+errorcheck=evalin('base','errorcheck');
+errorcheck=1;
+assignin('base','errorcheck',errorcheck);
+
+CA = xlsread(file);
+
+[l,g]=size(CA);
+
+assignin('base','l',l);
+
+assignin('base','g',g);
+
+for j=1:g
+conti_1(1,j)=sum(CA(:,j));
+end
+for i=1:l
+conti_2(i,1)= sum(CA(i,:));
+end
+total=sum(conti_2);
+conti_2=[conti_2;total];
+conti_3=[CA;conti_1];
+contigency_table=[conti_3(:,1:end) conti_2];
+frequency_table=contigency_table/total;
+
+assignin('base','contigency_table',contigency_table);
+
+assignin('base','frequency_table',frequency_table);
+
+assignin('base','total',total);
+elseif existance==0
+end
+
+
+% --- Executes on button press in pushbutton1.
+function pushbutton1_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+contigency_table = evalin('base','contigency_table');
+total = evalin('base','total');
+fullpathname = evalin('base','fullpathname');
+
+disp(fullpathname)
+
+fprintf('\n - The size of the sample is %1.0f.\n',total)
+fprintf('\n Correspondence Table \n')
+disp(contigency_table)
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+for i=1:l
+    for j=1:g+1
+row_profile(i,j)=frequency_table(i,j)/row_mass(i,1);
+    end
+end
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+for i=1:l+1
+    for j=1:g
+   column_profile(i,j)=frequency_table(i,j)/column_mass(1,j);    
+    end
+end
+
+for i=1:l
+for j=1:g
+    a(j)=((row_profile(i,j)-column_mass(1,j))^2)/column_mass(1,j);
+end
+Distances_row_points(i)=sqrt(sum(a));
+end
+
+for j=1:g
+for i=1:l
+    ba(i)=((column_profile(i,j)-row_mass(i,1))^2)/row_mass(i,1);
+end
+ Distances_column_points(j,1)=sqrt(sum(ba));
+end
+	
+Distances_column_points=Distances_column_points(1:g,1);
+
+Distances_row_points_2 = Distances_row_points.^2;
+Distances_column_points_2 = Distances_column_points.^2;
+
+for i=1:l
+for j=1:g
+    a(j)=((row_profile(i,j)-column_mass(1,j))^2)/column_mass(1,j);
+end
+Distances_row_points(i)=sqrt(sum(a));
+end
+
+ Distances_row_points_2 = Distances_row_points.^2;
+
+
+for i=1:l
+    I(i)=row_mass(i,1)*Distances_row_points_2(1,i);
+end
+
+Adraneia_me_apostaseis=sum(I(1,:));
+
+for i=1:l
+    for j=1:g
+        e=(contigency_table(i,g+1)*contigency_table(l+1,j))/total;
+        chi_square_table(i,j)= ((contigency_table(i,j)-e)^2)/e ;
+    end 
+end
+
+k=min(l-1,g-1);
+
+     
+chi_square=sum(chi_square_table);
+X_2=sum(chi_square(1,:));
+
+Dr=diag(row_mass);
+Dc=diag(column_mass);
+
+for i=1:l
+    for j=1:g
+frequency_table_without_row_mass_column_mass(i,j)=frequency_table(i,j);
+    end
+end
+
+Standardized_Residuals=(Dr^(-1/2))*(frequency_table_without_row_mass_column_mass-row_mass*column_mass)*(Dc^(-1/2));
+
+  wavelet0 = get(handles.checkbox17 ,'value');
+  wavelet00 = get(handles.checkbox18 ,'value');
+  wavelet1 = get(handles.checkbox7,'value');
+  wavelet2 = get(handles.checkbox8,'value');
+  wavelet3 = get(handles.checkbox9,'value');
+  wavelet4 = get(handles.checkbox10,'value');
+  wavelet5 = get(handles.checkbox11,'value');
+  wavelet6 = get(handles.checkbox12,'value');
+
+  if wavelet3==1
+      fprintf('\n Row mass \n')
+      disp(row_mass)
+  elseif wavelet3==0
+  end
+  
+  if wavelet4==1
+      fprintf('\n Column mass \n')
+      disp(column_mass)
+  elseif wavelet4==0
+  end
+  
+    if wavelet1==1
+      fprintf('\n Row profile \n')
+      disp(row_profile)
+  elseif wavelet1==0
+  end
+  
+  if wavelet2==1
+      fprintf('\n Column profile \n')
+      disp(column_profile)
+  elseif wavelet2==0
+  end
+  
+  if wavelet5==1
+      fprintf('\n Row Distances Table \n')
+      disp(Distances_row_points)
+      
+      fprintf('\n Column Distances Table \n')
+      disp(Distances_column_points)
+  elseif wavelet5==0
+  end
+  
+  if wavelet6==1
+      fprintf('\n Standardized Residuals Table \n')
+      disp(Standardized_Residuals)
+  elseif wavelet6==0
+  end
+
+[U,S,V]= svd(Standardized_Residuals);
+
+for i=1:l
+    for j=1:k
+        RU(i,j)= U(i,j);
+    end
+end
+
+for i=1:g
+    for j=1:k
+        RV(i,j)= V(i,j);
+    end
+end
+
+for i=1:k
+    for j=1:k
+        RS(i,j)= S(i,j);
+    end
+end
+
+RS_2=RS.^2;
+
+  wavelet7 = get(handles.checkbox16,'value');
+  wavelet8 = get(handles.radiobutton7,'value');
+  wavelet9 = get(handles.radiobutton9,'value');
+  wavelet10 = get(handles.radiobutton6,'value');
+  wavelet11 = get(handles.radiobutton8,'value');
+  
+    if wavelet0==1
+      
+     for i=1:k
+
+     inertia_axis(i)=(RS_2(i,i)/Adraneia_me_apostaseis)*100;
+
+     fprintf('\n - The percentage of inertia that the %1.0f axis can explain is %2.2f %%.\n',i,inertia_axis(1,i))
+     
+     end
+   
+   fprintf('\n - The inertia of the sample is equal to %2.3f.\n',Adraneia_me_apostaseis)
+   
+   elseif wavelet0==0
+   
+   end
+    
+     if wavelet00==1
+     fprintf('\n - The value of the Chi-Square test of independence is equal to %2.3f.\n',X_2)
+     elseif wavelet00==0
+     end
+     
+         for i=1:k
+
+         inertia_axis(i)=(RS_2(i,i)/Adraneia_me_apostaseis)*100;
+
+         end
+     
+     in1= inertia_axis(1,1);
+     in2= inertia_axis(1,2);
+     
+  if wavelet7==1
+      
+      if  wavelet8==1
+        PC1=(Dr^(-1/2))*RU*RS^(1/2);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1/2);
+
+       wew3=sprintf('Row.Variable');
+
+for i=1:l
+wew1=sprintf('--(%1.0f).Row.Category',i);
+celldata1(i)=cellstr(wew1);
+end
+
+wew4=sprintf('Column.Variable');
+ 
+for j=1:g
+wew2=sprintf('--(%1.0f).Column.Category',j);
+celldata2(j)=cellstr(wew2);
+end
+
+figure ('units','normalized','outerposition',[0 0 1 1]);
+    X=PC1(:,1:k);
+    Y=PC2(:,1:k);
+		
+    l1=[1:size(X,1)];
+    l2=[1:size(Y,1)];
+
+     for i=1:l
+     labels1(1,i) = strread(sprintf('%s',celldata1{1,i}),'%s').';
+     end
+         
+     for j=1:g
+     labels2(1,j) = strread(sprintf('%s',celldata2{1,j}),'%s').';
+     end
+     
+   
+        plot(X(:,1),X(:,2),'ob',Y(:,1),Y(:,2),'or',0,0,'-k');
+        h = legend(wew3,wew4,2);
+        text(X(:,1)+.002,X(:,2)+.002,labels1,'Color',[0 0 1]);
+        text(Y(:,1)+.002,Y(:,2)+.002,labels2,'Color',[1 0 0]);
+        title('Biplot of Simple Correspondence Analysis (Symmetrical Normalization)'); 
+        xlabel(['Dimension 1     ', '(',num2str(in1), ('%)') ;]);
+        ylabel(['Dimension 2     ', '(',num2str(in2), ('%)') ;]);
+        miny=ylim; 
+        maxy=ylim;
+        minx=xlim;
+        maxx=xlim;
+        L_1=miny(1,1);  
+        L_2=maxy(1,2);
+        L1=minx(1,1);
+        L2=maxx(1,2);
+        line([0 0],[L_1 L_2]); hold on; line([L1 L2],[0 0]);
+      elseif wavelet8==0
+      end
+      
+      if  wavelet9==1
+          
+        PC1=(Dr^(-1/2))*RU*RS^(1);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1);
+       
+      elseif wavelet9==0
+      end
+      
+      if  wavelet10==1
+          PC1=(Dr^(-1/2))*RU*RS^(1);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(0);
+
+       wew3=sprintf('Row.Variable');
+
+for i=1:l
+wew1=sprintf('--(%1.0f).Row.Category',i);
+celldata1(i)=cellstr(wew1);
+end
+
+wew4=sprintf('Column.Variable');
+ 
+for j=1:g
+wew2=sprintf('--(%1.0f).Column.Category',j);
+celldata2(j)=cellstr(wew2);
+end
+
+figure ('units','normalized','outerposition',[0 0 1 1]);
+    X=PC1(:,1:k);
+    Y=PC2(:,1:k);
+		
+    l1=[1:size(X,1)];
+    l2=[1:size(Y,1)];
+
+     for i=1:l
+     labels1(1,i) = strread(sprintf('%s',celldata1{1,i}),'%s').';
+     end
+         
+     for j=1:g
+     labels2(1,j) = strread(sprintf('%s',celldata2{1,j}),'%s').';
+     end
+     
+        plot(X(:,1),X(:,2),'ob',Y(:,1),Y(:,2),'or',0,0,'-k');
+        h = legend(wew3,wew4,2);
+        text(X(:,1)+.002,X(:,2)+.002,labels1,'Color',[0 0 1]);
+        text(Y(:,1)+.002,Y(:,2)+.002,labels2,'Color',[1 0 0]);
+        title('Biplot of Simple Correspondence Analysis (Row Normalization)'); 
+        xlabel(['Dimension 1     ', '(',num2str(in1), ('%)') ;]);
+        ylabel(['Dimension 2     ', '(',num2str(in2), ('%)') ;]);
+        miny=ylim; 
+        maxy=ylim;
+        minx=xlim;
+        maxx=xlim;
+        L_1=miny(1,1);  
+        L_2=maxy(1,2);
+        L1=minx(1,1);
+        L2=maxx(1,2);
+        line([0 0],[L_1 L_2]); hold on; line([L1 L2],[0 0]);
+      elseif wavelet10==0
+      end 
+      
+      if  wavelet11==1
+                
+        PC1=(Dr^(-1/2))*RU*RS^(0);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1);
+       
+       wew3=sprintf('Row.Variable');
+
+for i=1:l
+wew1=sprintf('--(%1.0f).Row.Category',i);
+celldata1(i)=cellstr(wew1);
+end
+
+wew4=sprintf('Column.Variable');
+ 
+for j=1:g
+wew2=sprintf('--(%1.0f).Column.Category',j);
+celldata2(j)=cellstr(wew2);
+end
+
+figure ('units','normalized','outerposition',[0 0 1 1]);
+    X=PC1(:,1:k);
+    Y=PC2(:,1:k);
+		
+    l1=[1:size(X,1)];
+    l2=[1:size(Y,1)];
+
+     for i=1:l
+     labels1(1,i) = strread(sprintf('%s',celldata1{1,i}),'%s').';
+     end
+         
+     for j=1:g
+     labels2(1,j) = strread(sprintf('%s',celldata2{1,j}),'%s').';
+     end
+     
+        plot(X(:,1),X(:,2),'ob',Y(:,1),Y(:,2),'or',0,0,'-k');
+        h = legend(wew3,wew4,2);
+        text(X(:,1)+.002,X(:,2)+.002,labels1,'Color',[0 0 1]);
+        text(Y(:,1)+.002,Y(:,2)+.002,labels2,'Color',[1 0 0]);
+        title('Biplot of Simple Correspondence Analysis (Column Normalization)'); 
+        xlabel(['Dimension 1     ', '(',num2str(in1), ('%)') ;]);
+        ylabel(['Dimension 2     ', '(',num2str(in2), ('%)') ;]);
+        miny=ylim; 
+        maxy=ylim;
+        minx=xlim;
+        maxx=xlim;
+        L_1=miny(1,1);  
+        L_2=maxy(1,2);
+        L1=minx(1,1);
+        L2=maxx(1,2);
+        line([0 0],[L_1 L_2]); hold on; line([L1 L2],[0 0]);
+      elseif wavelet11==0
+      end
+      
+  elseif wavelet7==0
+  end
+   
+      if  wavelet8==1
+        PC1=(Dr^(-1/2))*RU*RS^(1/2);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1/2);
+        
+        fprintf('\n Row principal components \n')
+        disp(PC1)
+        
+        fprintf('\n Column principal components  \n')
+        disp(PC2)
+        
+        PC1_2=PC1.^2;
+        PC2_2=PC2.^2;
+
+       [b,c]=size(PC1_2);
+       for i=1:b
+       for j=1:c
+       contri_inertia_row_points(i,j)= row_mass(i,1)*(PC1_2(i,j))*((RS_2(j,j))^(-1/2));
+       end
+       end
+       contri_inertia_row_points=contri_inertia_row_points.*100;
+
+       [d,e]=size(PC2_2);
+       for i=1:d
+       for j=1:e
+       contri_inertia_column_points(i,j)= column_mass(1,i)*(PC2_2(i,j))*((RS_2(j,j))^(-1/2));
+       end
+       end
+       contri_inertia_column_points=contri_inertia_column_points.*100;
+
+       fprintf('\n Contribution of row points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_row_points);
+
+       fprintf('\n Contribution of column points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_column_points);
+       
+       Distances_row_points_2=Distances_row_points_2';
+
+aPC1=(Dr^(-1/2))*RU*RS^(1);
+
+bPC2=(Dc^(-1/2))*RV*RS^(1);
+
+aPC1_2=aPC1.^2;
+bPC2_2=bPC2.^2;
+
+for i=1:l
+for j=1:k
+ contri_dim_inertia_row_points(i,j)=aPC1_2(i,j)*Distances_row_points_2(i,1)^(-1) ;
+end
+end
+
+fprintf('\n Contribution of Dimensions to inertia of row points \n')
+disp(contri_dim_inertia_row_points);
+	
+for i=1:g
+for j=1:k
+ contri_dim_inertia_column_points(i,j)=bPC2_2(i,j)*Distances_column_points_2(i,1)^(-1) ;
+end
+end
+	
+fprintf('\n Contribution of Dimensions to inertia of column points \n')
+disp(contri_dim_inertia_column_points);
+
+      elseif wavelet8==0
+      end
+      
+      if  wavelet9==1
+          PC1=(Dr^(-1/2))*RU*RS^(1);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1);
+        
+        fprintf('\n Row principal components \n')
+        disp(PC1)
+        
+        fprintf('\n Column principal components  \n')
+        disp(PC2)
+        
+        PC1_2=PC1.^2;
+        PC2_2=PC2.^2;
+
+       [b,c]=size(PC1_2);
+       for i=1:b
+       for j=1:c
+       contri_inertia_row_points(i,j)= row_mass(i,1)*(PC1_2(i,j))*((RS_2(j,j))^(-1));
+       end
+       end
+       contri_inertia_row_points=contri_inertia_row_points.*100;
+
+       [d,e]=size(PC2_2);
+       for i=1:d
+       for j=1:e
+       contri_inertia_column_points(i,j)= column_mass(1,i)*(PC2_2(i,j))*((RS_2(j,j))^(-1));
+       end
+       end
+       contri_inertia_column_points=contri_inertia_column_points.*100;
+
+       fprintf('\n Contribution of row points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_row_points);
+
+       fprintf('\n Contribution of column points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_column_points);
+       
+       Distances_row_points_2=Distances_row_points_2';
+
+aPC1=(Dr^(-1/2))*RU*RS^(1);
+
+bPC2=(Dc^(-1/2))*RV*RS^(1);
+
+aPC1_2=aPC1.^2;
+bPC2_2=bPC2.^2;
+
+for i=1:l
+for j=1:k
+ contri_dim_inertia_row_points(i,j)=aPC1_2(i,j)*Distances_row_points_2(i,1)^(-1) ;
+end
+end
+
+fprintf('\n Contribution of Dimensions to inertia of row points \n')
+disp(contri_dim_inertia_row_points);
+	
+for i=1:g
+for j=1:k
+ contri_dim_inertia_column_points(i,j)=bPC2_2(i,j)*Distances_column_points_2(i,1)^(-1) ;
+end
+end
+	
+fprintf('\n Contribution of Dimensions to inertia of column points \n')
+disp(contri_dim_inertia_column_points);
+       
+      elseif wavelet9==0
+      end
+      
+      if  wavelet10==1
+          PC1=(Dr^(-1/2))*RU*RS^(1);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(0);
+        
+        fprintf('\n Row principal components \n')
+        disp(PC1)
+        
+        fprintf('\n Column principal components  \n')
+        disp(PC2)
+        
+        PC1_2=PC1.^2;
+        PC2_2=PC2.^2;
+
+       [b,c]=size(PC1_2);
+       for i=1:b
+       for j=1:c
+       contri_inertia_row_points(i,j)= row_mass(i,1)*(PC1_2(i,j))*((RS_2(j,j))^(-1));
+       end
+       end
+       contri_inertia_row_points=contri_inertia_row_points.*100;
+
+       [d,e]=size(PC2_2);
+       for i=1:d
+       for j=1:e
+       contri_inertia_column_points(i,j)= column_mass(1,i)*(PC2_2(i,j))*((RS_2(j,j))^(0));
+       end
+       end
+       contri_inertia_column_points=contri_inertia_column_points.*100;
+
+       fprintf('\n Contribution of row points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_row_points);
+
+       fprintf('\n Contribution of column points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_column_points);
+       
+       Distances_row_points_2=Distances_row_points_2';
+
+aPC1=(Dr^(-1/2))*RU*RS^(1);
+
+bPC2=(Dc^(-1/2))*RV*RS^(1);
+
+aPC1_2=aPC1.^2;
+bPC2_2=bPC2.^2;
+
+for i=1:l
+for j=1:k
+ contri_dim_inertia_row_points(i,j)=aPC1_2(i,j)*Distances_row_points_2(i,1)^(-1) ;
+end
+end
+
+fprintf('\n Contribution of Dimensions to inertia of row points \n')
+disp(contri_dim_inertia_row_points);
+	
+for i=1:g
+for j=1:k
+ contri_dim_inertia_column_points(i,j)=bPC2_2(i,j)*Distances_column_points_2(i,1)^(-1) ;
+end
+end
+	
+fprintf('\n Contribution of Dimensions to inertia of column points \n')
+disp(contri_dim_inertia_column_points);
+
+      elseif wavelet10==0
+      end 
+      
+      if  wavelet11==1
+                
+        PC1=(Dr^(-1/2))*RU*RS^(0);
+        
+        PC2=(Dc^(-1/2))*RV*RS^(1);
+        
+        fprintf('\n Row principal components \n')
+        disp(PC1)
+        
+        fprintf('\n Column principal components  \n')
+        disp(PC2)
+        
+        PC1_2=PC1.^2;
+        PC2_2=PC2.^2;
+
+       [b,c]=size(PC1_2);
+       for i=1:b
+       for j=1:c
+       contri_inertia_row_points(i,j)= row_mass(i,1)*(PC1_2(i,j))*((RS_2(j,j))^(0));
+       end
+       end
+       contri_inertia_row_points=contri_inertia_row_points.*100;
+
+       [d,e]=size(PC2_2);
+       for i=1:d
+       for j=1:e
+       contri_inertia_column_points(i,j)= column_mass(1,i)*(PC2_2(i,j))*((RS_2(j,j))^(-1));
+       end
+       end
+       contri_inertia_column_points=contri_inertia_column_points.*100;
+
+       fprintf('\n Contribution of row points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_row_points);
+
+       fprintf('\n Contribution of column points to inertia of Dimensions (Percentage) \n')
+       disp(contri_inertia_column_points);
+       
+       Distances_row_points_2=Distances_row_points_2';
+
+aPC1=(Dr^(-1/2))*RU*RS^(1);
+
+bPC2=(Dc^(-1/2))*RV*RS^(1);
+
+aPC1_2=aPC1.^2;
+bPC2_2=bPC2.^2;
+
+for i=1:l
+for j=1:k
+ contri_dim_inertia_row_points(i,j)=aPC1_2(i,j)*Distances_row_points_2(i,1)^(-1) ;
+end
+end
+
+fprintf('\n Contribution of Dimensions to inertia of row points \n')
+disp(contri_dim_inertia_row_points);
+	
+for i=1:g
+for j=1:k
+ contri_dim_inertia_column_points(i,j)=bPC2_2(i,j)*Distances_column_points_2(i,1)^(-1) ;
+end
+end
+	
+fprintf('\n Contribution of Dimensions to inertia of column points \n')
+disp(contri_dim_inertia_column_points);
+
+      elseif wavelet11==0
+      end
+elseif errorcheck==0
+    errordlg('        Data not found','Data Error');
+end
+  
+% --- Executes on button press in pushbutton3.
+function pushbutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+close
+
+
+% --- Executes on button press in checkbox7.
+function checkbox7_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+for i=1:l
+    for j=1:g+1
+row_profile(i,j)=frequency_table(i,j)/row_mass(i,1);
+    end
+end
+
+assignin('base','row_profile',row_profile);
+elseif errorcheck==0
+    set(handles.checkbox7,'Value',0);
+end
+
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox7
+
+
+% --- Executes on button press in checkbox8.
+function checkbox8_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+for i=1:l+1
+    for j=1:g
+   column_profile(i,j)=frequency_table(i,j)/column_mass(1,j);    
+    end
+end
+
+assignin('base','column_profile',column_profile);
+elseif errorcheck==0
+    set(handles.checkbox8,'Value',0);
+end
+
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox8
+
+
+% --- Executes on button press in checkbox9.
+function checkbox9_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox9 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+assignin('base','row_mass',row_mass);
+elseif errorcheck==0
+    set(handles.checkbox9,'Value',0);
+end
+
+
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox9
+
+
+% --- Executes on button press in checkbox10.
+function checkbox10_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+assignin('base','column_mass',column_mass);
+elseif errorcheck==0
+    set(handles.checkbox10,'Value',0);
+end
+
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox10
+
+
+% --- Executes on button press in checkbox11.
+function checkbox11_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+for i=1:l
+    for j=1:g+1
+row_profile(i,j)=frequency_table(i,j)/row_mass(i,1);
+    end
+end
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+for i=1:l+1
+    for j=1:g
+   column_profile(i,j)=frequency_table(i,j)/column_mass(1,j);    
+    end
+end
+
+for i=1:l
+for j=1:g
+    a(j)=((row_profile(i,j)-column_mass(1,j))^2)/column_mass(1,j);
+end
+Distances_row_points(i)=sqrt(sum(a));
+end
+
+assignin('base','Distances_row_points',Distances_row_points);
+
+for j=1:g
+for i=1:l
+    ba(i)=((column_profile(i,j)-row_mass(i,1))^2)/row_mass(i,1);
+end
+ Distances_column_points(j,1)=sqrt(sum(ba));
+end
+	
+Distances_column_points=Distances_column_points(1:g,1);
+
+assignin('base','Distances_column_points',Distances_column_points);
+elseif errorcheck==0
+    set(handles.checkbox11,'Value',0);
+end
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox11
+
+
+% --- Executes on button press in checkbox12.
+function checkbox12_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+Dr=diag(row_mass);
+Dc=diag(column_mass);
+
+for i=1:l
+    for j=1:g
+frequency_table_without_row_mass_column_mass(i,j)=frequency_table(i,j);
+    end
+end
+
+Standardized_Residuals=(Dr^(-1/2))*(frequency_table_without_row_mass_column_mass-row_mass*column_mass)*(Dc^(-1/2));
+
+assignin('base','Standardized_Residuals',Standardized_Residuals);
+elseif errorcheck==0
+    set(handles.checkbox12,'Value',0);
+end
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox12
+
+
+% --- Executes on button press in checkbox16.
+function checkbox16_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox16 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+
+if errorcheck==0
+    set(handles.checkbox16,'Value',0);
+end
+
+wavelet9 = get(handles.radiobutton9,'value');
+
+if wavelet9==1
+    set(handles.checkbox16,'Value',0);
+end
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox16
+
+% --- Executes on button press in pushbutton8.
+function pushbutton8_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton8 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+  set(handles.checkbox7,'Value',0);
+  set(handles.checkbox8,'Value',0);
+  set(handles.checkbox9,'Value',0);
+  set(handles.checkbox10,'Value',0);
+  set(handles.checkbox11,'Value',0);
+  set(handles.checkbox12,'Value',0);
+  set(handles.checkbox16,'Value',0);
+  set(handles.checkbox17,'Value',0);
+  set(handles.checkbox18,'Value',0);
+  set(handles.radiobutton7,'Value',1);
+  set(handles.radiobutton9,'Value',0);
+  set(handles.radiobutton6,'Value',0);
+  set(handles.radiobutton8,'Value',0);
+
+% --- Executes on button press in checkbox17.
+function checkbox17_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox17 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+frequency_table = evalin('base','frequency_table');
+
+for i=1:l
+    row_mass(i,1)=frequency_table(i,g+1);
+end
+
+for i=1:l
+    for j=1:g+1
+row_profile(i,j)=frequency_table(i,j)/row_mass(i,1);
+    end
+end
+
+for j=1:g
+    column_mass(1,j)=frequency_table(l+1,j);
+end
+
+for i=1:l
+for j=1:g
+    a(j)=((row_profile(i,j)-column_mass(1,j))^2)/column_mass(1,j);
+end
+Distances_row_points(i)=sqrt(sum(a));
+end
+
+ Distances_row_points_2 = Distances_row_points.^2;
+
+
+for i=1:l
+    I(i)=row_mass(i,1)*Distances_row_points_2(1,i);
+end
+
+Adraneia_me_apostaseis=sum(I(1,:));
+
+assignin('base','Adraneia_me_apostaseis',Adraneia_me_apostaseis);
+elseif errorcheck==0
+    set(handles.checkbox17,'Value',0);
+end
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox17
+
+
+% --- Executes on button press in checkbox18.
+function checkbox18_Callback(hObject, eventdata, handles)
+% hObject    handle to checkbox18 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+errorcheck=evalin('base','errorcheck');
+
+if errorcheck==1
+    
+l = evalin('base','l');
+g = evalin('base','g');
+contigency_table = evalin('base','contigency_table');
+total = evalin('base','total');
+
+for i=1:l
+    for j=1:g
+        e=(contigency_table(i,g+1)*contigency_table(l+1,j))/total;
+        chi_square_table(i,j)= ((contigency_table(i,j)-e)^2)/e ;
+    end 
+end
+
+chi_square=sum(chi_square_table);
+X_2=sum(chi_square(1,:));
+elseif errorcheck==0
+    set(handles.checkbox18,'Value',0);
+end
+    
+
+% Hint: get(hObject,'Value') returns toggle state of checkbox18
+
+% --- Executes on button press in pushbutton9.
+function pushbutton9_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton9 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+evalin( 'base', 'clearvars *');
+errorcheck=0;
+assignin('base','errorcheck',errorcheck);
+set(handles.text4, 'String' ,'');% Showing FullPathName
+
+
+% --- Executes on button press in pushbutton10.
+function pushbutton10_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton10 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+clc
